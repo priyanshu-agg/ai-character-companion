@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Character Companion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1f2e 0%, #252d3d 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 20px 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Message Area */
+        .message-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Scrollbar Styling */
+        .message-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .message-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .message-area::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .message-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            gap: 16px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* Input Area */
+        .input-area {
+            background: linear-gradient(to top, #0f1419 0%, rgba(26, 31, 46, 0.8) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 20px 24px 24px 24px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-field {
+            flex: 1;
+            background: rgba(31, 41, 55, 0.8);
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 15px;
+            color: #ffffff;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            resize: none;
+            max-height: 120px;
+            min-height: 48px;
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.35);
+            font-weight: 400;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.5);
+            background: rgba(31, 41, 55, 1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Send Button */
+        .send-button {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 48px;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .send-button::after {
+            content: '→';
+            font-size: 18px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .message-area {
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .input-area {
+                padding: 16px;
+            }
+
+            .input-field {
+                padding: 12px 16px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+
+            .send-button {
+                padding: 10px 20px;
+                height: 44px;
+                font-size: 14px;
+            }
+        }
+
+        /* Dark Mode Enhancement */
+        @media (prefers-color-scheme: dark) {
+            body {
+                color-scheme: dark;
+            }
+        }
+
+        /* Message Bubbles */
+        .message {
+            display: flex;
+            margin-bottom: 8px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #ffffff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: rgba(99, 102, 241, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Theme Styles */
+        /* Butler Theme - Sleek Silver */
+        body.theme-butler .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-bottom: 2px solid #c0c0c0;
+        }
+
+        body.theme-butler .message.bot .message-content {
+            background: rgba(192, 192, 192, 0.15);
+            border: 1.5px solid rgba(192, 192, 192, 0.4);
+            color: #e8e8e8;
+        }
+
+        body.theme-butler .send-button {
+            background: linear-gradient(135deg, #a9a9a9 0%, #c0c0c0 100%);
+            box-shadow: 0 4px 15px rgba(192, 192, 192, 0.2);
+        }
+
+        body.theme-butler .send-button:hover {
+            box-shadow: 0 6px 20px rgba(192, 192, 192, 0.3);
+        }
+
+        /* Pirate Theme - Dark Brown/Gold */
+        body.theme-pirate .header {
+            background: linear-gradient(135deg, #3d2817 0%, #2b1810 100%);
+            border-bottom: 2px solid #d4af37;
+        }
+
+        body.theme-pirate .message.bot .message-content {
+            background: rgba(212, 175, 55, 0.15);
+            border: 1.5px solid rgba(212, 175, 55, 0.4);
+            color: #ffd700;
+        }
+
+        body.theme-pirate .send-button {
+            background: linear-gradient(135deg, #d4af37 0%, #aa8c2c 100%);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+
+        body.theme-pirate .send-button:hover {
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Coach Theme - Neon Green/Pink */
+        body.theme-coach .header {
+            background: linear-gradient(135deg, #1a2e1a 0%, #2d1a2d 100%);
+            border-bottom: 2px solid #ff1493;
+        }
+
+        body.theme-coach .message.bot .message-content {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1.5px solid rgba(0, 255, 136, 0.4);
+            color: #00ff88;
+        }
+
+        body.theme-coach .send-button {
+            background: linear-gradient(135deg, #00ff88 0%, #ff1493 100%);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        body.theme-coach .send-button:hover {
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        /* Detective Theme - Beige/Dark Gray */
+        body.theme-detective .header {
+            background: linear-gradient(135deg, #2d2416 0%, #3d3d3d 100%);
+            border-bottom: 2px solid #8b7355;
+        }
+
+        body.theme-detective .message.bot .message-content {
+            background: rgba(139, 115, 85, 0.15);
+            border: 1.5px solid rgba(139, 115, 85, 0.4);
+            color: #d4c5b0;
+        }
+
+        body.theme-detective .send-button {
+            background: linear-gradient(135deg, #8b7355 0%, #5d5d5d 100%);
+            box-shadow: 0 4px 15px rgba(139, 115, 85, 0.3);
+        }
+
+        body.theme-detective .send-button:hover {
+            box-shadow: 0 6px 20px rgba(139, 115, 85, 0.4);
+        }
+
+        /* Work IQ Button */
+        .workiq-button {
+            background: transparent;
+            color: rgba(255,255,255,0.9);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            min-width: 160px;
+            text-align: center;
+        }
+
+        .workiq-button.syncing {
+            background: linear-gradient(90deg, rgba(99,102,241,0.15), rgba(139,92,246,0.06));
+            color: #fff;
+            border-color: rgba(99,102,241,0.3);
+            box-shadow: 0 6px 18px rgba(99,102,241,0.08);
+        }
+
+        .workiq-button.connected {
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: #05201a;
+            border-color: rgba(5,150,105,0.4);
+            box-shadow: 0 6px 20px rgba(16,185,129,0.18);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>AI Character Companion</h1>
+        <button id="workiq-btn" class="workiq-button">Connect Work IQ</button>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <!-- Message Area -->
+        <div class="message-area">
+            <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <p>Start a conversation with your AI companion</p>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-wrapper">
+                <textarea 
+                    class="input-field" 
+                    placeholder="Type your message here..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character Database with Rich Dialogue (expanded & expressive)
+        const characters = {
+            butler: {
+                name: 'Butler',
+                greeting: [
+                    "Good day, my esteemed guest. Might I fetch a scone while you settle into that most agreeable chair?",
+                    "Ah — splendid to see you. The drawing room is warmed, the tea is brewing, and your presence improves the whole establishment.",
+                    "Welcome, dear friend. Your punctuality is admirable; I shall record it with discreet pride.",
+                    "How delightful! A conversation with you promises refinement, wit, and perhaps a touch of gentle mischief."
+                ],
+                help: [
+                    "Pray, do not worry. Tell me the particulars and I shall untangle this knot with the patience of a chauffeur polishing silver.",
+                    "A delicate conundrum indeed — let us approach it like a well-set place: orderly, deliberate, and with an extra napkin for comfort.",
+                    "I appreciate your candor. Permit me a moment to sort the facts; I shall present options ranked by discretion and efficacy.",
+                    "Confusion is merely the first course; together we'll enjoy dessert of clarity and a final flourish of confidence."
+                ],
+                positive: [
+                    "Most extraordinary! Your effort is as polished as a valet's shoes — truly admirable.",
+                    "Splendid work, entirely worthy of the highest parlour. One almost hears the orchestra applaud.",
+                    "Bravo — you've conducted yourself with elegance and imagination. Allow me to offer a modest bow.",
+                    "Magnificent. Your success tastes as sweet as lemon curd on a summer afternoon."
+                ],
+                random: [
+                    "If I may be so bold, tell me more — the subtext in your words promises a delightful revelation.",
+                    "How very intriguing. I shall take notes and perhaps intersperse a tasteful anecdote or two.",
+                    "Your remark is the sort to spark conversation by the fireplace; elaborate and I will listen with the greatest interest.",
+                    "Remarkable. There's an elegance to your thoughts that deserves the finest accompaniment: more detail, if you please."
+                ]
+            },
+            pirate: {
+                name: 'Pirate',
+                greeting: [
+                    "Ahoy! Strap yerself in — the sea's got tales aplenty and I plan to spill 'em like rum at a rowdy port!",
+                    "Ho there, landlubber-turned-buccaneer! The decks be creakin' but the stories be gold — ready to plunder some lore?",
+                    "Yo-ho! Your arrival's finer'n a gale favoring the sails. Let's chase horizons and mischief together.",
+                    "Avast! If it's adventure ye seek, ye've found the right salt. Speak and I'll set a course."
+                ],
+                help: [
+                    "Blimey, ye've tangled the rigging, have ye? Start by takin' a breath — we'll lash the problem down piece by piece.",
+                    "Lost on these murky waters? I once navigated a storm with naught but a spoon and stubbornness — let's chart yer path.",
+                    "Puzzled, mate? Call on ol' Sea-Bone here: we'll swab the decks of doubt and hoist the clarity sail together.",
+                    "Fear not — the map may be torn but the treasure's still there. Tell me where ye began and we'll stitch the map anew."
+                ],
+                positive: [
+                    "ARRR! That's the kind of pluck that earns ye a chest o' gold and a drink beneath the Jolly Roger!",
+                    "By thunder — that triumph's thunderous! I'd sing yer praises on every prow from here to Tortuga!",
+                    "Ye shine like polished brass in the captain's lantern. Keep that fire and we'll conquer the seven seas!",
+                    "Shiver me timbers, that's glorious — yer courage would make even the fiercest kraken grin."
+                ],
+                random: [
+                    "Spin me the yarn again, mate — I'm all ears and a little bit of rum-soaked curiosity.",
+                    "By me hook, that notion's tasty! Let's see if we can turn it into a legend worth singin'.",
+                    "A right salty thought, that one. It smells of distant isles and late-night schemin'. Tell me more.",
+                    "Harr! Ye've got the cunning of a fox at sea. Keep talkin' and we'll craft mischief of the highest order."
+                ]
+            },
+            coach: {
+                name: 'Coach',
+                greeting: [
+                    "YEAH!! Look at you showing up — that’s half the battle. Let’s crank the volume on your potential!",
+                    "Welcome, CHAMPION! You've got grit and I'm here to turn that spark into a blazing streak of wins.",
+                    "Oh-ho! That energy — I can already see the highlight reel. Let's set goals and smash 'em together!",
+                    "You walked in and the room got brighter. Let's capitalize on that momentum and make something legendary."
+                ],
+                help: [
+                    "You're stuck? PERFECT. That means we're moments away from growth. Tell me the snag and we'll blueprint a victory.",
+                    "Confusion isn't failure—it's a checkpoint. We'll sprint past it with a plan and a ridiculous playlist.",
+                    "Okay, here's the play: break down the issue, prioritize, execute with gusto — I'll be shouting encouragement the whole time.",
+                    "Tell me one small win you want today and we'll stack 'em into a freakin' tower of triumph. Let's GO."
+                ],
+                positive: [
+                    "That's freakin' incredible! You're nailing this — keep that energy and watch the scoreboard light up!",
+                    "Yes! That progress is the exact kind of momentum champions build upon — own it, savor it, repeat.",
+                    "Legendary move! You're operating at peak performance; celebrate the tiny wins and then chase the next one.",
+                    "Boom — that's the stuff! You're proving what's possible when focus meets hustle. Proud of you."
+                ],
+                random: [
+                    "Ooo — I like where your head's at. Let's refine that idea into something unstoppable.",
+                    "Bold move! The brave try new things; the smart iterate. Let's sketch a quick action plan.",
+                    "That's creative and rough — love it. Let's prototype small, measure fast, and double down on what works.",
+                    "You're onto something! Keep feeding that creative machine and we'll ship something amazing."
+                ]
+            },
+            detective: {
+                name: 'Detective',
+                greeting: [
+                    "At last — someone with questions. Sit. The game begins when someone asks the right one.",
+                    "Good to see you. The trail has been whispering; perhaps you bring the missing piece.",
+                    "Welcome. Interesting to have you here — your arrival tightens the plot wonderfully.",
+                    "Greetings. The shadows were growing dull; your curiosity sharpens them into clues."
+                ],
+                help: [
+                    "Confounded? Excellent. That tells me there's a pattern hiding in plain sight. Describe what you recall, however small.",
+                    "Help is simply method applied to mystery. We'll gather facts, discard noise, and follow the clearest lead.",
+                    "When confusion persists, I list assumptions and test each one. Start there and we'll prune the improbable.",
+                    "Tell me the sequence of events in as much detail as you can; minor details are the marrow of discovery."
+                ],
+                positive: [
+                    "Astute observation. You've got the instincts of a fine investigator — that will serve you well.",
+                    "Impressive deduction. The way you connected those dots suggests a mind trained on nuance.",
+                    "Brilliant — you're peeling back layers with surgical precision. Keep following that thread.",
+                    "Exceptional. You've illuminated a path through ambiguity; that clarity will solve many puzzles."
+                ],
+                random: [
+                    "Intriguing — the subtext here hints at motives. Expand on your thinking and we'll probe deeper.",
+                    "There's a faint scent of pattern in your thought; let's collect the fragments and assemble meaning.",
+                    "That assertion has an underside. What would you say motivated that idea?",
+                    "Noted. I would cross-reference that with other clues — sometimes the contradiction is the key."
+                ]
+            }
+        };
+
+        // Keywords for detection
+        const keywords = {
+            greeting: ['hello', 'hi', 'hey', 'greetings', 'howdy', 'sup', 'yo', 'hola', 'hey there'],
+            help: ['help', 'confused', 'what', 'struggling', 'stuck', 'lost', 'unclear', 'explain', 'how', 'why'],
+            positive: ['good', 'great', 'love', 'amazing', 'awesome', 'excellent', 'cool', 'fantastic', 'wonderful', 'fantastic', 'brilliant', 'stellar']
+        };
+
+        // Current theme
+        let currentCharacter = 'butler';
+
+        // Get elements
+        const inputField = document.querySelector('.input-field');
+        const sendButton = document.querySelector('.send-button');
+        const messageArea = document.querySelector('.message-area');
+        const headerTitle = document.querySelector('.header h1');
+
+        // Update theme
+        function setTheme(characterKey) {
+            // Remove all theme classes
+            document.body.className = document.body.className.replace(/theme-\w+/g, '');
+            // Add new theme class
+            document.body.classList.add(`theme-${characterKey}`);
+            currentCharacter = characterKey;
+            
+            // Update header
+            const charName = characters[characterKey].name;
+            headerTitle.textContent = `AI Companion - ${charName} Mode`;
+        }
+
+        // Initialize with butler theme
+        setTheme('butler');
+
+        // Work IQ integration state
+        let workIQConnected = false;
+        let workIQData = null;
+
+        // Mock fetchWorkIQContext: simulates retrieving enterprise items
+        function fetchWorkIQContext() {
+            // Simulate network delay and return static mock items
+            const items = [
+                "Urgent: Project Deadline at 5 PM",
+                "Missed Call from Boss",
+                "Calendar: Team Sync in 10 mins"
+            ];
+            return new Promise((resolve) => {
+                setTimeout(() => resolve(items), 700);
+            });
+        }
+
+        // Produce a character-specific summary of work items
+        function produceWorkSummary(characterKey, items) {
+            const joined = items.join('; ');
+            switch (characterKey) {
+                case 'pirate': {
+                    // Pirate voice: boss as Captain, deadline as sinking ship
+                    return `Arrr — the manifest says: ${items.map(it => {
+                        if (/deadline/i.test(it)) return `a deadline be a sinkin' ship ("${it}")`; 
+                        if (/boss/i.test(it)) return `a missive from the Captain ("${it}")`; 
+                        return it;
+                    }).join(', ')}. Batten down the hatches!`;
+                }
+                case 'coach': {
+                    // Coach voice: deadline as cardio goal
+                    return `Listen up, CHAMP: ${items.map(it => {
+                        if (/deadline/i.test(it)) return `deadline at 5 PM — that's your sprint finish, hit it hard! ("${it}")`;
+                        if (/missed call|boss/i.test(it)) return `missed call from the Boss — call back ASAP, treat it like recovery time! ("${it}")`;
+                        return it;
+                    }).join(' | ')} Go smash it!`;
+                }
+                case 'detective': {
+                    // Detective voice: analytical summary
+                    return `Observations: ${items.map(it => `(${it})`).join(' ')}. Hypothesis: priorities are the deadline and the upcoming sync. Recommend immediate action on the missed call.`;
+                }
+                case 'butler':
+                default: {
+                    // Butler voice: polite summary
+                    return `A concise summary, if I may: ${joined}. Might I suggest addressing the missed call and preparing for the sync?`;
+                }
+            }
+        }
+
+        // Connect Work IQ button handler
+        const workIQBtn = document.getElementById('workiq-btn');
+        if (workIQBtn) {
+            workIQBtn.addEventListener('click', async () => {
+                if (workIQConnected) return; // already connected
+                workIQBtn.classList.add('syncing');
+                workIQBtn.textContent = 'Syncing...';
+                try {
+                    const items = await fetchWorkIQContext();
+                    workIQData = items;
+                    workIQConnected = true;
+                    workIQBtn.classList.remove('syncing');
+                    workIQBtn.classList.add('connected');
+                    workIQBtn.textContent = 'Work IQ: Connected';
+                } catch (err) {
+                    workIQBtn.classList.remove('syncing');
+                    workIQBtn.textContent = 'Connect Work IQ';
+                }
+            });
+        }
+
+        // Check for commands
+        function checkForCommand(text) {
+            const lower = text.toLowerCase().trim();
+            if (lower === '/pirate') return 'pirate';
+            if (lower === '/coach') return 'coach';
+            if (lower === '/detective') return 'detective';
+            if (lower === '/butler') return 'butler';
+            return null;
+        }
+
+        // Detect inline persona mention anywhere in the text (mid-chat switching)
+        function detectPersonMention(text) {
+            const lower = (text || '').toLowerCase();
+            if (lower.includes('pirate')) return 'pirate';
+            if (lower.includes('coach')) return 'coach';
+            if (lower.includes('detective')) return 'detective';
+            if (lower.includes('butler')) return 'butler';
+            return null;
+        }
+
+        // Detect keyword category from provided text
+        function detectKeywordCategory(text) {
+            const lower = (text || '').toLowerCase();
+
+            if (keywords.greeting.some(kw => lower.includes(kw))) {
+                return 'greeting';
+            }
+            if (keywords.help.some(kw => lower.includes(kw))) {
+                return 'help';
+            }
+            if (keywords.positive.some(kw => lower.includes(kw))) {
+                return 'positive';
+            }
+
+            return 'random';
+        }
+
+        // Random helper
+        function rand(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Simple key-phrase extractor: tries to capture verb+object or falls back to last 4 words
+        function extractKeyPhrase(text) {
+            if (!text) return '';
+            const lower = text.trim();
+            // try common patterns
+            const m = lower.match(/(?:need to|want to|have to|got to|should|please|could you|can you|i need to|i want to)\s+(.{1,100})/i);
+            if (m && m[1]) return m[1].replace(/[?.!]$/, '').trim();
+            // match verbs like 'fix', 'call', 'schedule' + object
+            const m2 = lower.match(/(?:fix|call|schedule|meet|email|update|repair|install)\s+(.{1,100})/i);
+            if (m2 && m2[1]) return m2[1].replace(/[?.!]$/, '').trim();
+            // as fallback take last up to 5 words
+            const words = lower.split(/\s+/).filter(Boolean);
+            if (words.length <= 5) return words.join(' ');
+            return words.slice(-5).join(' ');
+        }
+
+        // Response building blocks
+        const starters = [
+            "Right away,",
+            "Hmm—interesting,",
+            "Absolutely,",
+            "Noted:",
+            "Okay—here's the thing:",
+            "Well then," 
+        ];
+
+        const middles = [
+            "I see you mentioned '{phrase}'",
+            "you said '{phrase}', and that tells me",
+            "regarding '{phrase}', my thought is",
+            "with '{phrase}' in mind, I would say",
+            "since you brought up '{phrase}', consider that"
+        ];
+
+        const endings = {
+            butler: [
+                "— a measured approach with a dash of poise will suffice.",
+                "— may I recommend a thoughtful plan and perhaps a cup of tea?",
+                "— proceed with dignity and a clear checklist.",
+                "— one should act with deliberation and a crisp hand." 
+            ],
+            pirate: [
+                "— seize it like treasure and curse the tides!",
+                "— hoist the sails and make a run for it, aye!",
+                "— swashbuckle that problem until it yields booty!",
+                "— curse, charge, and claim the spoils!"
+            ],
+            coach: [
+                "— attack it like a sprint: three reps, full throttle!",
+                "— make a plan, set a timer, and OWN it!",
+                "— cheer loud, act fast, and celebrate the win!",
+                "— break it into sprints and crush each one!"
+            ],
+            detective: [
+                "— catalog the clues, test your assumptions, and report back.",
+                "— that smells like a clue; verify sources and proceed analytically.",
+                "— note the inconsistencies and follow the smallest lead.",
+                "— form hypotheses, then attempt to falsify them." 
+            ]
+        };
+
+        // Build a multi-part dynamic response, optionally injecting Work IQ context
+        function buildDynamicResponse(characterKey, userText, category) {
+            const phrase = extractKeyPhrase(userText) || userText.trim();
+            const starter = rand(starters);
+            let middle = rand(middles);
+            middle = middle.replace('{phrase}', phrase || '(that)');
+
+            // If it's a work query and Work IQ connected, prepare a work insertion
+            let workInsert = '';
+            const workKeywords = ['schedule', 'work', 'today', 'agenda', 'deadline', 'boss', 'meeting', 'calendar'];
+            const lower = (userText || '').toLowerCase();
+            const isWorkQuery = workKeywords.some(kw => lower.includes(kw));
+            if (isWorkQuery && workIQConnected) {
+                const summary = produceWorkSummary(characterKey, workIQData || []);
+                // make it a compact insertion
+                workInsert = ` ${summary}`;
+            }
+
+            // choose an ending that matches character
+            const charEndings = endings[characterKey] || endings.butler;
+            const end = rand(charEndings);
+
+            // For greeting/help/positive categories, try to pick a character-owned line too
+            const char = characters[characterKey];
+            let extra = '';
+            if (category && char[category] && Math.random() < 0.6) {
+                extra = ' ' + rand(char[category]);
+            }
+
+            return `${starter} ${middle}${workInsert} ${end}${extra}`.replace(/\s+/g, ' ').trim();
+        }
+
+        // Get response from character based on a specific text
+        function getCharacterResponse(characterKey, text) {
+            // Work check and general category
+            const category = detectKeywordCategory(text);
+            // Build dynamic response for everything (more variety)
+            return buildDynamicResponse(characterKey, text, category);
+        }
+
+        // Generate dynamic question responses per character
+        function generateQuestionResponse(characterKey, text) {
+            const t = text.trim();
+            const qTemplates = {
+                butler: [
+                    `Ah — a probing question indeed: "${t}". One must consider etiquette, motive, and the appropriate dessert. My counsel: approach with measured curiosity and a napkin tucked in your lap.`,
+                    `An excellent inquiry: "${t}". Philosophically speaking, the answer requires balancing propriety with intent — may I suggest a contemplative cup of tea while we deliberate?`,
+                    `You ask "${t}"? Fascinating. In my experience such questions resolve when one distinguishes between the trivial and the dignified. Shall I categorize the possibilities?`
+                ],
+                pirate: [
+                    `Ye ask: "${t}"? Har! That sounds like the kind o' mystery that smells o' buried treasure and rum. My answer: follow the wind and keep a weather eye on the horizon.`,
+                    `Arrr — "${t}" — that's a conundrum I'd bury in a chest and guard with cannon fire. But truth be told, it often comes down to courage and a bit o' luck.`,
+                    `By the king's beard, "${t}" deserves a roar and a hearty plan. I'd say: seize the sail, swear by the stars, and don't trust the calm seas.`
+                ],
+                coach: [
+                    `Question: "${t}"? I LOVE that. Here's the deal — break it into tiny wins, set a timer, and attack. You got this, champion!`,
+                    `That question "${t}" screams potential. Answer: do one bold thing today, then repeat. Momentum beats doubt every time.`,
+                    `Short answer to "${t}": decide, execute, reflect. Now get loud about it and own the outcome!`
+                ],
+                detective: [
+                    `"${t}" — an intriguing probe. My immediate thought: gather evidence, form hypotheses, then eliminate the improbable. The truth hides in the small contradictions.`,
+                    `Ah — "${t}" shows the fingerprints of ambiguity. I'd recommend cataloguing assumptions and tracing each one to its origin.`,
+                    `A question like "${t}" invites hypotheses. My counsel: interrogate the premises, not the conclusion.`
+                ]
+            };
+            const arr = qTemplates[characterKey] || qTemplates.butler;
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Generate short, 1-3 word reaction responses
+        function generateShortResponse(characterKey, text) {
+            const s = (text || '').trim();
+            const templates = {
+                butler: [
+                    `So concise! Pray, elaborate beyond "${s}" and I'll respond in full measure.`,
+                    `"${s}" — a succinct remark. One craves at least a spoonful more of context, if you please.`,
+                    `Brief, but notable. A single syllable may carry an entire paragraph; care to expand?`
+                ],
+                pirate: [
+                    `"${s}"? Har! Speak up, ye whisperin' wind! I can't plunder meaning from such a hint.`,
+                    `That's a whisper o' thought, mate. Shout it louder if ye want a proper plan o' mischief!`,
+                    `Three words or fewer? That's suspicious — what's the hidden map, savvy?`
+                ],
+                coach: [
+                    `WHAT? Bring the energy! "${s}" is the warmup — now give me the main set!`,
+                    `Come on CHAMP, that's a starter! I need details — speak like you mean it!`,
+                    `Short and snappy, but we need substance. Add a bit more and I'll give you a playbook!`
+                ],
+                detective: [
+                    `"${s}" — terse. Often the terse hide the most telling clues. Expand and the pattern emerges.`,
+                    `A minimal phrase; it may be a deliberate obfuscation. Tell me what else you observed.`,
+                    `Brief, yes — but consider that brevity sometimes conceals motive. Elaborate for clarity.`
+                ]
+            };
+            const arr = templates[characterKey] || templates.butler;
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Generate responses for long statements
+        function generateLongResponse(characterKey, text) {
+            const t = (text || '').trim();
+            const templates = {
+                butler: [
+                    `What a richly described sentiment. Allow me to parse: ${t.slice(0, 200)}... In short, one should proceed with grace and a well-timed compliment.`,
+                    `You have painted quite the picture: ${t.slice(0, 200)}... My response would be to balance pragmatism with a touch of theatricality.`,
+                    `A layered exposition indeed. Extract the kernel of intent, then apply gentle, precise action — such is my counsel.`
+                ],
+                pirate: [
+                    `That's a salty saga ye spun: ${t.slice(0, 200)}... Me take? Turn that yarn into action — or toss it to the sea and make a new plan.`,
+                    `A lengthy yarn full o' wind and wonder. I'd say pick the boldest line and make it yer prow. Don't dilly-dally!`,
+                    `Grand tale, mate. Trim the fat, keep the fire, and let's raid the nearest opportunity.`
+                ],
+                coach: [
+                    `Love the detail — that's fuel. ${t.slice(0, 200)}... Now let's carve that into objectives: three actions, five-minute sprints, one glory move.`,
+                    `This is a full-on playbook. Break it down, prioritize ruthlessly, and attack with relentless optimism. You're closer than you think.`,
+                    `All that energy in words — convert it to motion. Pick one bite-sized task and dominate it right now.`
+                ],
+                detective: [
+                    `Fascinating narrative. I observe several anomalies in your account: ${t.slice(0, 200)}... My recommendation: verify timestamps and sources first.`,
+                    `Your long-form statement yields clues. Extract the inconsistent details and test them; surprises await in the exceptions.`,
+                    `A meticulous report — the next step is to formulate hypotheses for each oddity and attempt to falsify them.`
+                ]
+            };
+            const arr = templates[characterKey] || templates.butler;
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        
+
+        // Remove empty state when first message arrives
+        function removeEmptyState() {
+            const emptyState = messageArea.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+        }
+
+        // Add a message to the chat
+        function addMessage(text, isUser) {
+            removeEmptyState();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+
+            messageDiv.appendChild(contentDiv);
+            messageArea.appendChild(messageDiv);
+
+            smoothScroll();
+        }
+
+        // Add typing indicator (idempotent)
+        function addTypingIndicator() {
+            removeEmptyState();
+            removeTypingIndicator();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.id = 'typing-indicator';
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `
+                AI Companion is typing...
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+
+            messageDiv.appendChild(typingDiv);
+            messageArea.appendChild(messageDiv);
+
+            smoothScroll();
+        }
+
+        // Remove typing indicator if present
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // Manage typing/response timers so rapid messages don't overlap
+        let typingTimeout = null;
+        let responseTimeout = null;
+
+        // Smooth scroll to bottom
+        function smoothScroll() {
+            messageArea.scrollTo({
+                top: messageArea.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Handle sending a message
+        function sendMessage() {
+            const raw = inputField.value;
+            const text = raw.trim();
+
+            // Do nothing if text is empty or just spaces
+            if (!text) {
+                return;
+            }
+
+            // Clear any pending timers and typing indicators
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+                typingTimeout = null;
+            }
+            if (responseTimeout) {
+                clearTimeout(responseTimeout);
+                responseTimeout = null;
+            }
+            removeTypingIndicator();
+
+            // Check for personality switch commands
+            const command = checkForCommand(text);
+            if (command) {
+                // Add user message
+                addMessage(text, true);
+
+                // Clear input field
+                inputField.value = '';
+                inputField.style.minHeight = '48px';
+
+                // Set new theme immediately
+                setTheme(command);
+
+                // Schedule typing indicator then introduction
+                typingTimeout = setTimeout(() => {
+                    addTypingIndicator();
+                }, 800);
+
+                responseTimeout = setTimeout(() => {
+                    removeTypingIndicator();
+                    const charName = characters[command].name;
+                    const introChoices = [
+                        `Well, well — you've summoned me. I am ${charName}. Shall we begin?`,
+                        `You rang? ${charName} at your service. I come bearing eccentricities and excellent advice.`,
+                        `${charName} reporting for duty: polished, peculiar, and profoundly helpful. What now, friend?`
+                    ];
+                    const intro = introChoices[Math.floor(Math.random() * introChoices.length)];
+                    addMessage(intro, false);
+                    typingTimeout = null;
+                    responseTimeout = null;
+                }, 2000);
+
+                inputField.focus();
+                return;
+            }
+
+            // Add user message
+            addMessage(text, true);
+
+            // Clear input field
+            inputField.value = '';
+            inputField.style.minHeight = '48px';
+
+            // Refocus input field
+            inputField.focus();
+
+            // Schedule typing indicator and response
+            typingTimeout = setTimeout(() => {
+                addTypingIndicator();
+            }, 800);
+
+            responseTimeout = setTimeout(() => {
+                removeTypingIndicator();
+                const response = getCharacterResponse(currentCharacter, raw);
+                addMessage(response, false);
+                typingTimeout = null;
+                responseTimeout = null;
+            }, 2000);
+        }
+
+        // Send button click handler
+        sendButton.addEventListener('click', sendMessage);
+
+        // Enter key handler (Shift+Enter for new line)
+        inputField.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Auto-resize textarea based on content
+        inputField.addEventListener('input', () => {
+            inputField.style.minHeight = '48px';
+            inputField.style.minHeight = Math.min(inputField.scrollHeight, 120) + 'px';
+        });
+    </script>
+</body>
+</html>
