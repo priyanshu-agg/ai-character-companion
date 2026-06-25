@@ -8,8 +8,3 @@ AI Character Companion is a dynamic, multi-personality web application built for
 * **Dynamic UI Theming:** The application visually transforms its color scheme and styling to match the active character's vibe.
 * **Simulated Microsoft Work IQ Integration:** Demonstrates enterprise readiness by mocking a Work IQ connection, allowing the characters to read "workspace context" and respond to them in-character.
 * **100% Client-Side:** Built entirely with HTML, CSS, and vanilla JavaScript for a fast, secure, local experience without requiring exposed API keys.
-
-## How GitHub Copilot Was Used
-As a developer with less prior programming experience, GitHub Copilot was my technical co-founder for this project. 
-* **Agent Mode:** Used to architect the foundational HTML structure and modern CSS layout.
-* **Iterative Prompting:** Used to incrementally build the complex JavaScript logic, starting from basic message appending to a sophisticated keyword recognition engine.
